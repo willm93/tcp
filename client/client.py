@@ -55,7 +55,7 @@ class Client:
 
 
 if __name__ == '__main__':
-    ip = '127.0.1.1' #input("set ip: ")
-    port = 3000 #input("set port: ")
+    ip = input("set ip: ")
+    port = int(input("set port: "))
     client = Client(ip, port, ENCODING, HEADERSIZE)
     client.run()
