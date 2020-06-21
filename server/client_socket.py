@@ -7,22 +7,6 @@ class ClientSocket:
         self.encoding = encoding
         self.headersize = headersize
 
-    def fileno(self):
-        return self.socket.fileno()
-
-    def close(self):
-        self.socket.close()
-    
-    def decode(self, msg_bytes):
-        return msg_bytes.decode(self.encoding)
-
-    def encode(self, msg):
-        return msg.encode(self.encoding)
-
-    def send(self, msg_bytes):
-        header_bytes = self.encode(f"{len(msg_bytes):<{self.headersize}}")
-        self.socket.send(header_bytes + msg_bytes)
-
     def on_read(self):
         header_bytes = self.socket.recv(self.headersize)
 
@@ -43,4 +27,20 @@ class ClientSocket:
 
         response = {'type': 'new_msg', 'addr': self.addr, 'msg_bytes': msg_bytes}
         return response
+
+    def send(self, msg_bytes):
+        header_bytes = self.encode(f"{len(msg_bytes):<{self.headersize}}")
+        self.socket.send(header_bytes + msg_bytes)
+
+    def fileno(self):
+        return self.socket.fileno()
+
+    def close(self):
+        self.socket.close()
+    
+    def decode(self, msg_bytes):
+        return msg_bytes.decode(self.encoding)
+
+    def encode(self, msg):
+        return msg.encode(self.encoding)
 

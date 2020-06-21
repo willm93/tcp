@@ -13,11 +13,37 @@ IP = socket.gethostbyname(socket.gethostname())
 ENCODING = 'utf-8'
 
 class Server:
-    def __init__(self):
-        self.server_socket = ServerSocket(IP, PORT)
+    def __init__(self, server_socket):
+        self.server_socket = server_socket 
         self.client_sockets = []
         print(f"[INIT] Server is listening on {IP}:{PORT}")
     
+    def run(self):
+        try:
+            print("[RUNNING]")
+            while True:
+                rdy_sockets, _, _ = select.select(self.all_sockets(), [], [])
+                for socket in rdy_sockets:
+                    response = socket.on_read()
+                    self.handle_response(response)
+        except Exception as e:
+            print(f"[ERROR] Line {sys.exc_info()[-1].tb_lineno}: {str(e)}")
+            self.shutdown()
+
+    def handle_response(self, response):
+        if response['type'] == 'new_msg':
+            self.msg_broadcast(response['addr'], response['msg_bytes']) 
+        elif response['type'] == 'blank_msg':
+            pass
+        elif response['type'] == 'command':
+            self.process_command(response['addr'], response['command'])
+        elif response['type'] == 'new_conn':
+            self.add_client(response['addr'], response['socket'])
+        elif response['type'] == 'closed_conn':
+            self.remove_client(response['addr'])
+        else:
+            print("[HANDLE FAILED] unknown response")
+
     def all_sockets(self):
         return self.client_sockets + [self.server_socket]
 
@@ -64,20 +90,6 @@ class Server:
             else:
                 print(f"[COMMAND FAILED] {addr} not found")
 
-    def handle_response(self, response):
-        if response['type'] == 'new_msg':
-            self.msg_broadcast(response['addr'], response['msg_bytes']) 
-        elif response['type'] == 'blank_msg':
-            pass
-        elif response['type'] == 'command':
-            self.process_command(response['addr'], response['command'])
-        elif response['type'] == 'new_conn':
-            self.add_client(response['addr'], response['socket'])
-        elif response['type'] == 'closed_conn':
-            self.remove_client(response['addr'])
-        else:
-            print("[HANDLE FAILED] unknown response")
-
     def shutdown(self):
         for client in self.client_sockets:
             client.close()
@@ -85,19 +97,9 @@ class Server:
         print("[SHUTTING DOWN]")
         sys.exit()
 
-    def run(self):
-        try:
-            print("[RUNNING]")
-            while True:
-                rdy_sockets, _, _ = select.select(self.all_sockets(), [], [])
-                for socket in rdy_sockets:
-                    response = socket.on_read()
-                    self.handle_response(response)
-        except Exception as e:
-            print(f"[ERROR] Line {sys.exc_info()[-1].tb_lineno}: {str(e)}")
-            self.shutdown()
-
 
 if __name__ == '__main__':
-    server = Server()
+    addr = (IP, PORT)
+    server_socket = ServerSocket(addr)
+    server = Server(server_socket)
     server.run()
