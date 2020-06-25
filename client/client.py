@@ -49,9 +49,8 @@ class Client:
             
 
 def main(stdscr):
-    input_window = curses.newwin(curses.LINES -5, curses.COLS -5, curses.LINES -1, curses.COLS -1)
+    input_window = curses.newwin(5, curses.COLS, curses.LINES -5, 0)
     client_ui = ClientUI(stdscr, input_window) 
-
     ip = '127.0.1.1'
     port = 3000
     connection = Connection((ip,port), ENCODING, HEADERSIZE)

@@ -5,7 +5,10 @@ class ClientUI:
     def __init__(self, chat_window, input_window):
             self.chat_window = chat_window
             self.input_window = input_window
-            self.current_line = 0
+            self.current_line = 2
+            self.chat_window.border()
+            self.chat_window.addstr(0, 2, 'TCP-Chat')
+            self.input_window.border()
             self.chat_window.refresh()
             self.input_window.refresh()
 
